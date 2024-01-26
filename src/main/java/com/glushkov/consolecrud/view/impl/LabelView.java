@@ -1,7 +1,6 @@
 package com.glushkov.consolecrud.view.impl;
 
 import com.glushkov.consolecrud.controller.impl.LabelController;
-import com.glushkov.consolecrud.controller.impl.PostController;
 import com.glushkov.consolecrud.model.Label;
 import com.glushkov.consolecrud.model.Status;
 import com.glushkov.consolecrud.exceprion.MyException;
@@ -12,16 +11,14 @@ import java.util.Scanner;
 
 public class LabelView implements View {
 
-    private final PostController postController = new PostController();
-    private final LabelController labelController = new LabelController();
-    private final Scanner sc = new Scanner(System.in);
+    private final LabelController LABEL_CONTROLLER = new LabelController();
+    private final Scanner SC = new Scanner(System.in);
 
     @Override
     public void delete() {
         System.out.println(Message.ENTER_ID);
-
         try {
-            labelController.delete(sc.nextLong());
+            LABEL_CONTROLLER.delete(SC.nextLong());
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
@@ -31,32 +28,27 @@ public class LabelView implements View {
     public void edit() {
         System.out.println(Message.ENTER_ID);
         try {
-            long id = sc.nextLong();
-            System.out.println("Текущий элемент:\n" + labelController.getByID(id));
-
+            long id = SC.nextLong();
+            System.out.println("Текущий элемент:\n" + LABEL_CONTROLLER.getByID(id));
             Label label = new Label(Status.ACTIVE);
+            label.setId(id);
             addLabel(label);
 
-            labelController.edit(label, id);
+            LABEL_CONTROLLER.edit(label);
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     private void addLabel(Label label) {
         System.out.println(Message.ENTER_NAME);
-        label.setName(sc.next());
-
-        System.out.println(postController.getAll());
-        System.out.println(Message.ENTER_POST);
-        label.setPostID(sc.nextLong());
+        label.setName(SC.next());
     }
 
     @Override
     public void getAll() {
         try {
-            System.out.println(labelController.getAll());
+            System.out.println(LABEL_CONTROLLER.getAll());
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
@@ -66,18 +58,16 @@ public class LabelView implements View {
     public void add() {
         Label label = new Label(Status.ACTIVE);
         addLabel(label);
-        labelController.add(label);
+        LABEL_CONTROLLER.add(label);
     }
 
     @Override
     public void getByID() {
-
         System.out.println(Message.ENTER_ID);
         try {
-            System.out.println(labelController.getByID(sc.nextInt()));
+            System.out.println(LABEL_CONTROLLER.getByID(SC.nextInt()));
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
-
     }
 }

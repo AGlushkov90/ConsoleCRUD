@@ -3,15 +3,27 @@ package com.glushkov.consolecrud.model;
 import java.util.List;
 
 public class Writer extends BaseItem {
-    private String firstName, lastName;
+    private String firstName;
+
+    private String lastName;
     private List<Post> posts;
 
     public Writer(Status status) {
         super(status);
     }
 
+    public Writer(Status status, long id) {
+        super(status, id);
+    }
+
+    public Writer(Status status, String firstName, String lastName, long id) {
+        super(status, id);
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
     public Writer(Status status, String firstName, String lastName) {
-        this(status);
+        super(status);
         this.firstName = firstName;
         this.lastName = lastName;
     }
@@ -21,24 +33,16 @@ public class Writer extends BaseItem {
         this.posts = posts;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
     public void setFirstName(String firstName) {
         this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
     }
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
-    public List<Post> getPosts() {
-        return posts;
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
     }
 
     @Override

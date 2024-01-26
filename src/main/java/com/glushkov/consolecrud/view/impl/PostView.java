@@ -1,28 +1,31 @@
 package com.glushkov.consolecrud.view.impl;
 
+import com.glushkov.consolecrud.controller.impl.LabelController;
 import com.glushkov.consolecrud.controller.impl.PostController;
-import com.glushkov.consolecrud.controller.impl.WriterController;
+import com.glushkov.consolecrud.model.Label;
 import com.glushkov.consolecrud.model.Post;
 import com.glushkov.consolecrud.model.Status;
 import com.glushkov.consolecrud.exceprion.MyException;
 import com.glushkov.consolecrud.view.Message;
 import com.glushkov.consolecrud.view.View;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PostView implements View {
 
-    private final PostController postController = new PostController();
-    private final WriterController writerController = new WriterController();
-    private final Scanner sc = new Scanner(System.in);
+    private final PostController POST_CONTROLLER = new PostController();
+    private final LabelController LABEL_CONTROLLER = new LabelController();
+    private final Scanner SC = new Scanner(System.in);
 
     @Override
     public void delete() {
         System.out.println(Message.ENTER_ID);
 
         try {
-            postController.delete(sc.nextLong());
+            POST_CONTROLLER.delete(SC.nextLong());
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
@@ -32,13 +35,13 @@ public class PostView implements View {
     public void edit() {
         System.out.println(Message.ENTER_ID);
         try {
-            long id = sc.nextLong();
-            System.out.println("Текущий элемент:\n" + postController.getByID(id));
+            long id = SC.nextLong();
+            System.out.println("Текущий элемент:\n" + POST_CONTROLLER.getByID(id));
 
-            Post post = new Post(Status.ACTIVE);
+            Post post = new Post(Status.ACTIVE, id);
             addPost(post);
 
-            postController.edit(post, id);
+            POST_CONTROLLER.edit(post);
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
@@ -46,20 +49,24 @@ public class PostView implements View {
 
     private void addPost(Post post) {
         System.out.println(Message.ENTER_TITLE);
-        post.setTitle(sc.next());
+        post.setTitle(SC.next());
 
         System.out.println(Message.ENTER_CONTENT);
-        post.setContent(sc.next());
+        post.setContent(SC.next());
 
-        System.out.println(writerController.getAll());
-        System.out.println(Message.ENTER_WRITER);
-        post.setWriterID(sc.nextLong());
+        Collection<Label> labels = LABEL_CONTROLLER.getAll();
+        System.out.println(labels);
+        System.out.println(Message.ENTER_LABEL);
+        post.setLabels(Stream.of(SC.next().split(","))
+                .mapToLong(Long::parseLong)
+                .mapToObj(LABEL_CONTROLLER::getByID)
+                .collect(Collectors.toList()));
     }
 
     @Override
     public void getAll() {
         try {
-            System.out.println(postController.getAll());
+            System.out.println(POST_CONTROLLER.getAll());
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
@@ -69,8 +76,7 @@ public class PostView implements View {
     public void add() {
         Post post = new Post(Status.ACTIVE);
         addPost(post);
-        post.setLabels(new ArrayList<>());
-        postController.add(post);
+        POST_CONTROLLER.add(post);
     }
 
     @Override
@@ -78,10 +84,9 @@ public class PostView implements View {
 
         System.out.println(Message.ENTER_ID);
         try {
-            System.out.println(postController.getByID(sc.nextInt()));
+            System.out.println(POST_CONTROLLER.getByID(SC.nextInt()));
         } catch (MyException e) {
             System.out.println(e.getMessage());
         }
-
     }
 }

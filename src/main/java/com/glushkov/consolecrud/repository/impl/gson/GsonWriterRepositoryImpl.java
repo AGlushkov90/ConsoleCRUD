@@ -1,7 +1,6 @@
 package com.glushkov.consolecrud.repository.impl.gson;
 
 import com.glushkov.consolecrud.model.BaseItem;
-import com.glushkov.consolecrud.model.Post;
 import com.glushkov.consolecrud.model.Status;
 import com.glushkov.consolecrud.model.Writer;
 import com.glushkov.consolecrud.repository.WriterRepository;
@@ -19,8 +18,7 @@ import java.util.stream.Collectors;
 
 public class GsonWriterRepositoryImpl implements WriterRepository {
 
-    private final static String fileName = "Writer.json";
-    GsonPostRepositoryImpl postRepository = new GsonPostRepositoryImpl();
+    private final static String FILE_NAME = "Writer.json";
 
     @Override
     public Writer getByID(Long id) {
@@ -31,59 +29,56 @@ public class GsonWriterRepositoryImpl implements WriterRepository {
 
     @Override
     public Collection<Writer> getAll() {
-        Type targetClassType = new TypeToken<ArrayList<Writer>>() {}.getType();
-        String text = FileUtil.read(fileName);
+        return getAllWritersInternal();
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        Collection<Writer> collection = getAllWritersInternal().stream().peek(label -> {
+            if (label.getId() == id) {
+                label.setStatus(Status.DELETED);
+            }
+        }).toList();
+        boolean idExists = collection.stream().anyMatch(label -> label.getId() == id);
+        if (idExists) {
+            FileUtil.add(FILE_NAME, new Gson().toJson(collection));
+        }
+        return idExists;
+    }
+
+    @Override
+    public Writer edit(Writer writerToUpdate) throws MyException {
+        Collection<Writer> collection = getAllWritersInternal()
+                .stream().map(existingLabel -> {
+                    if (existingLabel.getId() == writerToUpdate.getId()) {
+                        return writerToUpdate;
+                    }
+                    return existingLabel;
+                }).toList();
+
+        FileUtil.add(FILE_NAME, new Gson().toJson(collection));
+        return writerToUpdate;
+    }
+
+    private Collection<Writer> getAllWritersInternal() {
+        Type targetClassType = new TypeToken<ArrayList<Writer>>() {
+        }.getType();
+        String text = FileUtil.read(FILE_NAME);
         if (text.equals("")) {
             return new ArrayList<>();
         }
-        Collection<Writer> collectionWriter = new Gson().fromJson(text, targetClassType);
-        Collection<Post> collectionPost = postRepository.getAll();
-        if (!collectionPost.isEmpty()) {
-            for (Writer writer : collectionWriter) {
-                writer.getPosts().clear();
-                for (Post post : collectionPost) {
-                    if (post.getWriterID() == writer.getId()) {
-                        writer.getPosts().add(post);
-                    }
-                }
-            }
-        }
-        return collectionWriter.stream().sorted(Comparator.comparing(BaseItem::getId)).collect(Collectors.toList());
+        Collection<Writer> collection = new Gson().fromJson(text, targetClassType);
+        return collection.stream().sorted(Comparator.comparing(BaseItem::getId)).collect(Collectors.toList());
     }
 
     @Override
-    public void delete(Long id) {
-        boolean deleted = false;
-        Collection<Writer> collection = getAll();
-        for (Writer writer : collection) {
-            if (writer.getId() == id) {
-                writer.setStatus(Status.DELETED);
-                deleted = true;
-            }
-        }
-        if (!deleted) {
-            throw new MyException(Message.NOT_FIND_ID + String.valueOf(id));
-        }
-        FileUtil.add(fileName, new Gson().toJson(collection));
+    public Writer save(Writer itemToSave) {
+        Collection<Writer> collection = getAllWritersInternal();
+        Long newId = GsonCommonRepository.generateId(collection);
+        itemToSave.setId(newId);
+        collection.add(itemToSave);
+        FileUtil.add(FileUtil.getFileName(itemToSave), new Gson().toJson(collection));
+        return itemToSave;
     }
-
-    @Override
-    public void edit(Writer item, Long id) throws MyException {
-        boolean deleted = false;
-        Collection<Writer> collection = getAll();
-        for (Writer writer : collection) {
-            if (writer.getId() == id) {
-                writer.setFirstName(item.getFirstName());
-                writer.setLastName(item.getLastName());
-                deleted = true;
-            }
-        }
-        if (!deleted) {
-            throw new MyException(Message.NOT_FIND_ID + String.valueOf(id));
-        }
-        FileUtil.add(fileName, new Gson().toJson(collection));
-    }
-
-
 }
 

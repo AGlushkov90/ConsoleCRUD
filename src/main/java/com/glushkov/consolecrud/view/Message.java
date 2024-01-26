@@ -24,6 +24,8 @@ public enum Message {
     ENTER_CONTENT("Введите контент:"),
     ENTER_WRITER("Введите id автора:"),
     ENTER_NAME("Введите имя:"),
+    ENTER_LABEL("Введите id меток для поста через запятую:"),
+    ENTER_POSTS("Введите id постов для поста через запятую:"),
     ENTER_POST("Введите id поста:"),
     COLLECTION_EMPTY("Коллекция пустая"),
     NOT_FIND_ID("Id не найден ");

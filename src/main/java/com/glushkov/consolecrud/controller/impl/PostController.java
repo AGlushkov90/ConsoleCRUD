@@ -25,7 +25,7 @@ public class PostController {
         postRepository.delete(id);
     }
 
-    public void edit(Post post, long id) {
-        postRepository.edit(post, id);
+    public void edit(Post post) {
+        postRepository.edit(post);
     }
 }

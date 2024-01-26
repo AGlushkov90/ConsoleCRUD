@@ -25,7 +25,7 @@ public class WriterController {
         writerRepository.delete(id);
     }
 
-    public void edit(Writer writer, long id) {
-        writerRepository.edit(writer, id);
+    public void edit(Writer writer) {
+        writerRepository.edit(writer);
     }
 }

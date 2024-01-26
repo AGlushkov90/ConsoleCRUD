@@ -25,7 +25,7 @@ public class LabelController {
         labelRepository.delete(id);
     }
 
-    public void edit(Label label, long id) {
-        labelRepository.edit(label, id);
+    public void edit(Label label) {
+        labelRepository.edit(label);
     }
 }

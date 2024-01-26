@@ -8,6 +8,11 @@ public abstract class BaseItem {
         this.status = status;
     }
 
+    public BaseItem(Status status, long id) {
+        this(status);
+        this.id = id;
+    }
+
     public long getId() {
         return id;
     }

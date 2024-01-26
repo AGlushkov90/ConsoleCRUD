@@ -5,8 +5,6 @@ import com.glushkov.consolecrud.model.Label;
 import com.glushkov.consolecrud.model.Status;
 import com.glushkov.consolecrud.repository.LabelRepository;
 import com.glushkov.consolecrud.util.FileUtil;
-import com.glushkov.consolecrud.exceprion.MyException;
-import com.glushkov.consolecrud.view.Message;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -17,59 +15,65 @@ import java.util.Comparator;
 import java.util.stream.Collectors;
 
 public class GsonLabelRepositoryImpl implements LabelRepository {
-    private final static String fileName = "Label.json";
+    private final static String FILE_NAME = "Label.json";
 
     @Override
     public Label getByID(Long id) {
-        return getAll().stream().filter(a -> a.getId() == id).findFirst().orElseThrow(() -> {
-            throw new MyException(Message.NOT_FIND_ID.toString() + id);
-        });
+        return getAllLabelsInternal().stream().filter(a -> a.getId() == id).findFirst().orElse(null);
     }
 
-    @Override
-    public Collection<Label> getAll() {
-        Type targetClassType = new TypeToken<ArrayList<Label>>() {}.getType();
-        String text = FileUtil.read(fileName);
-        if(text.equals(""))
-        {
+    private Collection<Label> getAllLabelsInternal() {
+        Type targetClassType = new TypeToken<ArrayList<Label>>() {
+        }.getType();
+        String text = FileUtil.read(FILE_NAME);
+        if (text.equals("")) {
             return new ArrayList<>();
         }
         Collection<Label> collection = new Gson().fromJson(text, targetClassType);
         return collection.stream().sorted(Comparator.comparing(BaseItem::getId)).collect(Collectors.toList());
     }
 
+
     @Override
-    public void delete(Long id) {
-        boolean deleted = false;
-        Collection<Label> collection = getAll();
-        for (Label label : collection) {
+    public Collection<Label> getAll() {
+        return getAllLabelsInternal();
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        Collection<Label> collection = getAllLabelsInternal().stream().peek(label -> {
             if (label.getId() == id) {
                 label.setStatus(Status.DELETED);
-                deleted = true;
             }
+        }).toList();
+        boolean idExists = collection.stream().anyMatch(label -> label.getId() == id);
+        if (idExists) {
+            FileUtil.add(FILE_NAME, new Gson().toJson(collection));
         }
-        if (!deleted) {
-            throw new MyException(Message.NOT_FIND_ID + String.valueOf(id));
-        }
-        FileUtil.add(fileName, new Gson().toJson(collection));
+        return idExists;
+    }
+
+
+    @Override
+    public Label save(Label itemToSave) {
+        Collection<Label> collection = getAllLabelsInternal();
+        Long newId = GsonCommonRepository.generateId(collection);
+        itemToSave.setId(newId);
+        collection.add(itemToSave);
+        FileUtil.add(FileUtil.getFileName(itemToSave), new Gson().toJson(collection));
+        return itemToSave;
     }
 
     @Override
-    public void edit(Label item, Long id) throws MyException {
-        boolean deleted = false;
-        Collection<Label> collection = getAll();
-        for (Label label : collection) {
-            if (label.getId() == id) {
-                label.setName(item.getName());
-                label.setPostID(item.getPostID());
-                deleted = true;
-            }
-        }
-        if (!deleted) {
-            throw new MyException(Message.NOT_FIND_ID + String.valueOf(id));
-        }
-        FileUtil.add(fileName, new Gson().toJson(collection));
+    public Label edit(Label labelToUpdate) {
+        Collection<Label> collection = getAllLabelsInternal()
+                .stream().map(existingLabel -> {
+                    if (existingLabel.getId() == labelToUpdate.getId()) {
+                        return labelToUpdate;
+                    }
+                    return existingLabel;
+                }).toList();
+        FileUtil.add(FILE_NAME, new Gson().toJson(collection));
+        return labelToUpdate;
     }
-
-
 }

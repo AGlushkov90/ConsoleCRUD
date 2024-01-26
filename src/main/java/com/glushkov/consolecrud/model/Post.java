@@ -3,40 +3,24 @@ package com.glushkov.consolecrud.model;
 import java.util.List;
 
 public class Post extends BaseItem {
-    private String title, content;
+    private String title;
+    private String content;
     private List<Label> labels;
-    private Long writerID;
-
-    public void setWriterID(Long writerID) {
-        this.writerID = writerID;
-    }
-
-    public Long getWriterID() {
-        return writerID;
-    }
 
     public Post(Status status) {
         super(status);
     }
 
-    public String getTitle() {
-        return title;
+    public Post(Status status, long id) {
+        super(status, id);
     }
 
     public void setTitle(String title) {
         this.title = title;
     }
 
-    public String getContent() {
-        return content;
-    }
-
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public List<Label> getLabels() {
-        return labels;
     }
 
     public void setLabels(List<Label> labels) {
@@ -48,7 +32,6 @@ public class Post extends BaseItem {
         return "Post{" + super.toString() +
                 "title='" + title + '\'' +
                 ", content='" + content + '\'' +
-                ", writer id='" + writerID + '\'' +
                 ", labels=" + labels +
                 "}\n";
     }
